@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rideshare Profile</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #f4f4f9, #e0e0f0);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 300px;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-picture {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 4px solid white;
+      background-image: url('2.jpg') no-repeat center/cover;
+      margin: 0 auto 10px;
+    }
+
+    .profile-name {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 10px 0;
+      color: #fff;
+    }
+
+    .profile-info {
+      font-size: 16px;
+      margin: 10px 0;
+      color: #e0e0e0;
+    }
+
+    .profile-details {
+      text-align: left;
+      margin-top: 20px;
+    }
+
+    .profile-details p {
+      margin: 10px 0;
+      font-size: 14px;
+      color: #e0e0e0;
+    }
+
+    .go-back {
+      margin-top: 20px;
+      padding: 10px 15px;
+      background-color: #ff6f61;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+
+    .go-back:hover {
+      background-color: #ff4a3d;
+    }
+
+    .go-back a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: linear-gradient(135deg, #f4f4f9, #e0e0f0);
+    }
+
+    .section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .section:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .section h2 {
+      color: #6a11cb;
+      display: flex;
+      align-items: center;
+      margin: 0 0 15px 0;
+    }
+
+    .section h2 i {
+      margin-right: 10px;
+      color: #2575fc;
+    }
+
+    .ride-card {
+      background: #f8f9fa;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .ride-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .ride-card h3 {
+      margin: 0;
+      font-size: 16px;
+      color: #6a11cb;
+    }
+
+    .ride-card p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .ride-card p strong {
+      color: #2575fc;
+    }
+
+    /* Rating styles */
+    .rating {
+      display: flex;
+      margin-top: 5px;
+    }
+    
+    .rating .star {
+      color: #ffc107;
+      font-size: 16px;
+      margin-right: 2px;
+    }
+    
+    .rating .empty-star {
+      color: #e0e0e0;
+      font-size: 16px;
+      margin-right: 2px;
+    }
+    
+    .review-text {
+      font-style: italic;
+      margin-top: 5px;
+      padding: 8px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+      font-size: 13px;
+      color: #666;
+    }
+    
+    .rate-ride-btn {
+      background-color: #2575fc;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-top: 5px;
+      transition: background-color 0.3s;
+    }
+    
+    .rate-ride-btn:hover {
+      background-color: #1a5dc8;
+    }
+    
+    .rating-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .rating-modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      max-width: 90%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .rating-modal h3 {
+      margin-top: 0;
+      color: #6a11cb;
+    }
+    
+    .star-rating {
+      display: flex;
+      justify-content: center;
+      margin: 15px 0;
+    }
+    
+    .star-rating i {
+      font-size: 24px;
+      color: #e0e0e0;
+      cursor: pointer;
+      margin: 0 5px;
+      transition: color 0.2s;
+    }
+    
+    .star-rating i:hover,
+    .star-rating i.selected {
+      color: #ffc107;
+    }
+    
+    .review-textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      resize: vertical;
+      min-height: 80px;
+      margin-bottom: 15px;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .modal-buttons button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    
+    .submit-rating {
+      background-color: #2575fc;
+      color: white;
+    }
+    
+    .cancel-rating {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="profile-picture"></div>
+    <div class="profile-name">Yaseen Khan</div>
+    <div class="profile-info">Ride-share User</div>
+    <div class="profile-details">
+      <p><strong>ID:</strong> AV.EN.U4CSE22235</p>
+      <p><strong>Age:</strong> 19</p>
+      <p><strong>Phone:</strong> 6245135667</p>
+      <p><strong>Email:</strong> yaseen.khan@iitindore.ac.in</p>
+    </div>
+    <button class="go-back"><a href="{{ url_for('home') }}">GO BACK</a></button>
+  </div>
+
+  <div class="main-content">
+    <div class="section">
+      <h2><i class="fas fa-check-circle"></i> Completed Rides</h2>
+      <div class="ride-card">
+        <h3>Ride ID: R001</h3>
+        <p><strong>Cost:</strong> Rs100</p>
+        <p><strong>Date:</strong> 2023-10-01</p>
+      </div>
+      <div class="ride-card">
+        <h3>Ride ID: R002</h3>
+        <p><strong>Cost:</strong> Rs150</p>
+        <p><strong>Date:</strong> 2023-10-05</p>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2><i class="fas fa-times-circle"></i> Cancelled Rides</h2>
+      <div class="ride-card">
+        <h3>Ride ID: R006</h3>
+        <p><strong>Reason:</strong> Driver unavailable</p>
+        <p><strong>Date:</strong> 2023-10-10</p>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2><i class="fas fa-plus-circle"></i> Created Rides</h2>
+      <div class="ride-card">
+        <h3>Ride ID: R008</h3>
+        <p><strong>Destination:</strong> Airport</p>
+        <p><strong>Time:</strong> 10:00 AM</p>
+        <p><strong>Date:</strong> 2023-10-15</p>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2><i class="fas fa-history"></i> Ride History & Ratings</h2>
+      
+      <div class="ride-card">
+        <h3>Ride ID: R003</h3>
+        <p><strong>From:</strong> IIT Main Gate</p>
+        <p><strong>To:</strong> Vijay Nagar</p>
+        <p><strong>Date:</strong> 2023-09-25</p>
+        <p><strong>Driver:</strong> Rahul Sharma</p>
+        <div class="rating">
+          <span class="star"><i class="fas fa-star"></i></span>
+          <span class="star"><i class="fas fa-star"></i></span>
+          <span class="star"><i class="fas fa-star"></i></span>
+          <span class="star"><i class="fas fa-star"></i></span>
+          <span class="empty-star"><i class="far fa-star"></i></span>
+        </div>
+        <div class="review-text">
+          "Great ride, driver was punctual and friendly. The car was clean and comfortable."
+        </div>
+      </div>
+      
+      <div class="ride-card">
+        <h3>Ride ID: R004</h3>
+        <p><strong>From:</strong> Boys Hostel</p>
+        <p><strong>To:</strong> Indore Railway Station</p>
+        <p><strong>Date:</strong> 2023-09-18</p>
+        <p><strong>Driver:</strong> Amit Patel</p>
+        <div class="rating">
+          <span class="star"><i class="fas fa-star"></i></span>
+          <span class="star"><i class="fas fa-star"></i></span>
+          <span class="star"><i class="fas fa-star"></i></span>
+          <span class="empty-star"><i class="far fa-star"></i></span>
+          <span class="empty-star"><i class="far fa-star"></i></span>
+        </div>
+        <div class="review-text">
+          "Ride was okay. Driver arrived a bit late but was courteous."
+        </div>
+      </div>
+      
+      <div class="ride-card">
+        <h3>Ride ID: R005</h3>
+        <p><strong>From:</strong> Academic Block</p>
+        <p><strong>To:</strong> Treasure Island Mall</p>
+        <p><strong>Date:</strong> 2023-09-10</p>
+        <p><strong>Driver:</strong> Priya Singh</p>
+        <button class="rate-ride-btn" onclick="openRatingModal('R005')">Rate this ride</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Rating Modal -->
+  <div id="ratingModal" class="rating-modal">
+    <div class="rating-modal-content">
+      <h3>Rate Your Ride <span id="modalRideId"></span></h3>
+      <div class="star-rating">
+        <i class="far fa-star" data-rating="1" onclick="selectRating(1)"></i>
+        <i class="far fa-star" data-rating="2" onclick="selectRating(2)"></i>
+        <i class="far fa-star" data-rating="3" onclick="selectRating(3)"></i>
+        <i class="far fa-star" data-rating="4" onclick="selectRating(4)"></i>
+        <i class="far fa-star" data-rating="5" onclick="selectRating(5)"></i>
+      </div>
+      <textarea class="review-textarea" placeholder="Write your review here..."></textarea>
+      <div class="modal-buttons">
+        <button class="cancel-rating" onclick="closeRatingModal()">Cancel</button>
+        <button class="submit-rating" onclick="submitRating()">Submit Rating</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Rating functionality
+    function openRatingModal(rideId) {
+      document.getElementById('modalRideId').textContent = rideId;
+      document.getElementById('ratingModal').style.display = 'flex';
+    }
+    
+    function closeRatingModal() {
+      document.getElementById('ratingModal').style.display = 'none';
+      resetRatingStars();
+    }
+    
+    function selectRating(rating) {
+      const stars = document.querySelectorAll('.star-rating i');
+      resetRatingStars();
+      
+      for (let i = 0; i < rating; i++) {
+        stars[i].className = 'fas fa-star selected';
+      }
+    }
+    
+    function resetRatingStars() {
+      const stars = document.querySelectorAll('.star-rating i');
+      stars.forEach(star => {
+        star.className = 'far fa-star';
+      });
+    }
+    
+    function submitRating() {
+      // In a real application, this would send the rating to the server
+      const rideId = document.getElementById('modalRideId').textContent;
+      const selectedStars = document.querySelectorAll('.star-rating i.selected').length;
+      const reviewText = document.querySelector('.review-textarea').value;
+      
+      alert(`Rating of ${selectedStars} stars submitted for ride ${rideId} with review: "${reviewText}"`);
+      
+      // Here you would typically make an AJAX call to submit the rating
+      // For now, we'll just close the modal
+      closeRatingModal();
+    }
+  </script>
+</body>
+</html>

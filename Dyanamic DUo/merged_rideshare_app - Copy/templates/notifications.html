@@ -1,0 +1,876 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Enhanced Notifications Styling */
+    .notifications-container {
+        max-width: 850px;
+        margin: 3rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .notification-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        padding: 1.8rem;
+        margin-bottom: 1.8rem;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        transition: var(--transition);
+        position: relative;
+        animation: fadeInUp 0.5s ease-out forwards;
+        overflow: hidden;
+    }
+
+    .notification-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 4px;
+        background: linear-gradient(to bottom, var(--primary), var(--primary-light));
+        opacity: 0;
+        transition: var(--transition);
+    }
+
+    .notification-card:hover {
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+    }
+
+    .notification-card:hover::before {
+        opacity: 1;
+    }
+
+    .notification-header {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        margin-bottom: 1.5rem;
+        padding-right: 3.5rem;
+    }
+
+    .notification-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.12), rgba(58, 12, 163, 0.08));
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .notification-icon::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+        top: -50%;
+        left: -50%;
+        transition: all 0.5s ease;
+    }
+
+    .notification-card:hover .notification-icon::after {
+        top: -20%;
+        left: -20%;
+    }
+
+    .notification-icon i {
+        position: relative;
+        z-index: 2;
+        transition: transform 0.3s ease;
+    }
+
+    .notification-card:hover .notification-icon i {
+        transform: scale(1.1);
+    }
+
+    /* Different colors for different notification types */
+    .notification-icon.booking-request {
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.12), rgba(58, 12, 163, 0.08));
+        color: var(--primary);
+    }
+
+    .notification-icon.booking-approved {
+        background: linear-gradient(135deg, rgba(46, 204, 113, 0.12), rgba(39, 174, 96, 0.08));
+        color: var(--success);
+    }
+
+    .notification-icon.booking-rejected {
+        background: linear-gradient(135deg, rgba(231, 76, 60, 0.12), rgba(192, 57, 43, 0.08));
+        color: var(--danger);
+    }
+
+    .notification-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--secondary);
+        margin: 0;
+        transition: var(--transition);
+    }
+
+    .notification-card:hover .notification-title {
+        color: var(--primary);
+    }
+
+    .notification-time {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        margin-top: 0.4rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .notification-time i {
+        color: #95a5a6;
+        font-size: 0.85rem;
+    }
+
+    .notification-message {
+        color: #34495e;
+        margin-bottom: 1.8rem;
+        line-height: 1.7;
+        font-size: 1.05rem;
+        padding-right: 1.2rem;
+        transition: var(--transition);
+    }
+
+    .notification-card:hover .notification-message {
+        color: #2c3e50;
+    }
+
+    .notification-actions {
+        display: flex;
+        gap: 1.2rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn {
+        padding: 0.85rem 1.6rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        letter-spacing: 0.3px;
+    }
+
+    .btn-approve {
+        background: linear-gradient(135deg, #27ae60, #219a52);
+        color: white;
+    }
+
+    .btn-approve:hover {
+        background: linear-gradient(135deg, #219a52, #27ae60);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(39, 174, 96, 0.4);
+    }
+
+    .btn-reject {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+    }
+
+    .btn-reject:hover {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
+    }
+
+    .unread-badge {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 0.35rem 0.9rem;
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        font-weight: 600;
+        animation: pulse 1.5s infinite;
+        box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    @keyframes fadeInUp {
+        from { 
+            opacity: 0; 
+            transform: translateY(20px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+    }
+
+    @keyframes pulse {
+        0% { 
+            transform: scale(1);
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+        }
+        50% { 
+            transform: scale(1.05); 
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.5);
+        }
+        100% { 
+            transform: scale(1);
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+        }
+    }
+
+    .empty-notifications {
+        text-align: center;
+        padding: 5rem 2rem;
+        color: #7f8c8d;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        margin-top: 2.5rem;
+        transition: var(--transition);
+        border: 1px dashed #dfe6e9;
+    }
+
+    .empty-notifications:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+    }
+
+    .empty-notifications i {
+        font-size: 4rem;
+        color: #bdc3c7;
+        margin-bottom: 1.8rem;
+        opacity: 0.8;
+        transition: var(--transition);
+    }
+
+    .empty-notifications:hover i {
+        color: var(--primary-light);
+        transform: scale(1.1);
+    }
+
+    .empty-notifications p {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .empty-notifications small {
+        display: block;
+        max-width: 400px;
+        margin: 0 auto;
+        color: #95a5a6;
+        font-size: 0.95rem;
+    }
+
+    .page-title {
+        color: var(--secondary);
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        position: relative;
+        padding-bottom: 1rem;
+    }
+
+    .page-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        border-radius: 10px;
+    }
+
+    .page-title i {
+        color: var(--primary);
+        font-size: 2rem;
+        animation: bellShake 3s infinite;
+        transform-origin: top center;
+    }
+
+    @keyframes bellShake {
+        0%, 12%, 24%, 36%, 100% { transform: rotate(0); }
+        6%, 18%, 30% { transform: rotate(10deg); }
+        9%, 21%, 33% { transform: rotate(-10deg); }
+    }
+
+    /* Filter and sort controls */
+    .notification-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .notification-filters {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .filter-btn {
+        background: white;
+        border: 1px solid #dfe6e9;
+        border-radius: var(--border-radius);
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #7f8c8d;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary);
+        border-color: rgba(67, 97, 238, 0.3);
+    }
+
+    .filter-btn i {
+        font-size: 0.85rem;
+    }
+
+    .notification-search {
+        position: relative;
+    }
+
+    .notification-search input {
+        padding: 0.6rem 1rem 0.6rem 2.5rem;
+        border-radius: var(--border-radius);
+        border: 1px solid #dfe6e9;
+        font-size: 0.95rem;
+        width: 220px;
+        transition: var(--transition);
+    }
+
+    .notification-search input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        outline: none;
+        width: 260px;
+    }
+
+    .notification-search i {
+        position: absolute;
+        left: 0.8rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #7f8c8d;
+        pointer-events: none;
+    }
+
+    /* Mark all as read button */
+    .mark-all-read {
+        background: none;
+        border: none;
+        color: var(--primary);
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        font-size: 0.95rem;
+        transition: var(--transition);
+    }
+
+    .mark-all-read:hover {
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .notifications-container {
+            padding: 0 1rem;
+            margin: 2rem auto;
+        }
+
+        .notification-card {
+            padding: 1.5rem;
+        }
+
+        .notification-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .notification-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 1.2rem;
+        }
+
+        .notification-title {
+            font-size: 1.15rem;
+            padding-right: 3rem;
+        }
+
+        .notification-message {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .notification-actions {
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+        }
+
+        .notification-controls {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+
+        .notification-filters {
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            justify-content: space-between;
+        }
+
+        .filter-btn {
+            flex-shrink: 0;
+        }
+
+        .notification-search input {
+            width: 100%;
+        }
+
+        .notification-search input:focus {
+            width: 100%;
+        }
+    }
+
+    /* Animations for notification cards */
+    .notification-card:nth-child(2n) {
+        animation-delay: 0.1s;
+    }
+    
+    .notification-card:nth-child(3n) {
+        animation-delay: 0.2s;
+    }
+    
+    /* Hover effects */
+    .notification-card .btn i {
+        transition: transform 0.3s ease;
+    }
+    
+    .notification-card .btn:hover i {
+        transform: scale(1.2);
+    }
+    
+    /* Subtle    /* Subtle hover effects for notification cards */
+    .notification-card:hover .btn {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .notification-card:hover .btn-approve {
+        background: linear-gradient(135deg, #219a52, #27ae60);
+    }
+
+    .notification-card:hover .btn-reject {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+    }
+
+    /* Hover effect for the notification icon */
+    .notification-card:hover .notification-icon {
+        transform: rotate(10deg);
+        box-shadow: 0 6px 15px rgba(67, 97, 238, 0.3);
+    }
+
+    /* Hover effect for the notification time */
+    .notification-card:hover .notification-time {
+        color: var(--primary);
+    }
+
+    .notification-card:hover .notification-time i {
+        color: var(--primary);
+    }
+
+    /* Hover effect for the empty notifications box */
+    .empty-notifications:hover {
+        border-color: var(--primary-light);
+    }
+
+    .empty-notifications:hover p {
+        color: var(--primary);
+    }
+
+    /* Hover effect for the filter buttons */
+    .filter-btn:hover i {
+        color: var(--primary);
+    }
+
+    /* Hover effect for the mark all as read button */
+    .mark-all-read:hover i {
+        transform: rotate(360deg);
+    }
+
+    /* Hover effect for the search input */
+    .notification-search:hover input {
+        border-color: var(--primary);
+    }
+
+    .notification-search:hover i {
+        color: var(--primary);
+    }
+
+    /* Hover effect for the page title */
+    .page-title:hover::after {
+        width: 100%;
+        transition: width 0.5s ease;
+    }
+
+    /* Hover effect for the notification icon gradient */
+    .notification-icon::after {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .notification-card:hover .notification-icon::after {
+        opacity: 1;
+    }
+
+    /* Hover effect for the unread badge */
+    .unread-badge:hover {
+        animation: none;
+        transform: scale(1.1);
+    }
+
+    /* Hover effect for the notification title */
+    .notification-card:hover .notification-title {
+        transform: translateX(5px);
+    }
+
+    /* Hover effect for the notification message */
+    .notification-card:hover .notification-message {
+        transform: translateX(5px);
+    }
+
+    /* Hover effect for the notification actions */
+    .notification-card:hover .notification-actions {
+        transform: translateX(5px);
+    }
+
+    /* Hover effect for the empty notifications icon */
+    .empty-notifications:hover i {
+        animation: bellShake 1s infinite;
+    }
+
+    /* Hover effect for the notification card border */
+    .notification-card:hover {
+        border-color: var(--primary-light);
+    }
+
+    /* Hover effect for the notification card shadow */
+    .notification-card:hover {
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Hover effect for the notification card gradient */
+    .notification-card:hover::before {
+        opacity: 1;
+    }
+
+    /* Hover effect for the notification card icon */
+    .notification-card:hover .notification-icon i {
+        transform: scale(1.1);
+    }
+
+    /* Hover effect for the notification card title */
+    .notification-card:hover .notification-title {
+        color: var(--primary);
+    }
+
+    /* Hover effect for the notification card time */
+    .notification-card:hover .notification-time {
+        color: var(--primary);
+    }
+
+    /* Hover effect for the notification card message */
+    .notification-card:hover .notification-message {
+        color: var(--secondary);
+    }
+
+    /* Hover effect for the notification card actions */
+    .notification-card:hover .notification-actions {
+        transform: translateY(-5px);
+    }
+
+    /* Hover effect for the notification card buttons */
+    .notification-card:hover .btn {
+        transform: translateY(-3px);
+    }
+
+    /* Hover effect for the notification card approve button */
+    .notification-card:hover .btn-approve {
+        background: linear-gradient(135deg, #219a52, #27ae60);
+    }
+
+    /* Hover effect for the notification card reject button */
+    .notification-card:hover .btn-reject {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+    }
+
+    /* Hover effect for the notification card unread badge */
+    .notification-card:hover .unread-badge {
+        transform: scale(1.1);
+    }
+
+    /* Hover effect for the notification card icon gradient */
+    .notification-card:hover .notification-icon::after {
+        opacity: 1;
+    }
+
+    /* Hover effect for the notification card icon */
+    .notification-card:hover .notification-icon i {
+        transform: scale(1.1);
+    }
+
+    /* Hover effect for the notification card title */
+    .notification-card:hover .notification-title {
+        color: var(--primary);
+    }
+
+    /* Hover effect for the notification card time */
+    .notification-card:hover .notification-time {
+        color: var(--primary);
+    }
+
+    /* Hover effect for the notification card message */
+    .notification-card:hover .notification-message {
+        color: var(--secondary);
+    }
+
+    /* Hover effect for the notification card actions */
+    .notification-card:hover .notification-actions {
+        transform: translateY(-5px);
+    }
+
+    /* Hover effect for the notification card buttons */
+    .notification-card:hover .btn {
+        transform: translateY(-3px);
+    }
+
+    /* Hover effect for the notification card approve button */
+    .notification-card:hover .btn-approve {
+        background: linear-gradient(135deg, #219a52, #27ae60);
+    }
+
+    /* Hover effect for the notification card reject button */
+    .notification-card:hover .btn-reject {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+    }
+
+    /* Hover effect for the notification card unread badge */
+    .notification-card:hover .unread-badge {
+        transform: scale(1.1);
+    }
+
+    /* Hover effect for the notification card icon gradient */
+    .notification-card:hover .notification-icon::after {
+        opacity: 1;
+    }
+
+    /* Hover effect for the notification card icon */
+    .notification-card:hover .notification-icon i {
+        transform: scale(1.1);
+    }
+
+    /* Hover effect for the notification card title */
+    .notification-card:hover .notification-title {
+        color: var(--primary);
+    }
+
+    /* Hover effect for the notification card time */
+    .notification-card:hover .notification-time {
+        color: var(--primary);
+    }
+
+    /* Hover effect for the notification card message */
+    .notification-card:hover .notification-message {
+        color: var(--secondary);
+    }
+
+    /* Hover effect for the notification card actions */
+    .notification-card:hover .notification-actions {
+        transform: translateY(-5px);
+    }
+
+    /* Hover effect for the notification card buttons */
+    .notification-card:hover .btn {
+        transform: translateY(-3px);
+    }
+
+    /* Hover effect for the notification card approve button */
+    .notification-card:hover .btn-approve {
+        background: linear-gradient(135deg, #219a52, #27ae60);
+    }
+
+    /* Hover effect for the notification card reject button */
+    .notification-card:hover .btn-reject {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+    }
+
+    /* Hover effect for the notification card unread badge */
+    .notification-card:hover .unread-badge {
+        transform: scale(1.1);
+    }
+
+    /* Hover effect for the notification card icon gradient */
+    .notification-card:hover .notification-icon::after {
+        opacity: 1;
+    }
+</style>
+
+
+<div class="notifications-container">
+    <h1 class="page-title">
+        <i class="fas fa-bell"></i>
+        Notifications
+    </h1>
+    
+    {% if notifications %}
+        {% for notification in notifications %}
+            <div class="notification-card" id="notification-{{ notification.id }}">
+                {% if not notification.read %}
+                    <div class="unread-badge">New</div>
+                {% endif %}
+                
+                <div class="notification-header">
+                    <div class="notification-icon">
+                        {% if notification.type == 'booking_request' %}
+                            <i class="fas fa-user-plus"></i>
+                        {% elif notification.type == 'booking_approved' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif notification.type == 'booking_rejected' %}
+                            <i class="fas fa-times-circle"></i>
+                        {% else %}
+                            <i class="fas fa-bell"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h3 class="notification-title">{{ notification.title }}</h3>
+                        <span class="notification-time">{{ notification.created_at }}</span>
+                    </div>
+                </div>
+                
+                <div class="notification-message">
+                    {{ notification.message }}
+                </div>
+                
+                {% if notification.type == 'booking_request' %}
+                    <div class="notification-actions">
+                        <button class="btn btn-approve" data-booking-id="{{ notification.booking_id }}">
+                            <i class="fas fa-check"></i>
+                            <span>Approve</span>
+                        </button>
+                        <button class="btn btn-reject" data-booking-id="{{ notification.booking_id }}">
+                            <i class="fas fa-times"></i>
+                            <span>Reject</span>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-notifications">
+            <i class="fas fa-bell-slash"></i>
+            <p>No notifications yet</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function handleBooking(bookingId, action) {
+    var requestData = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'booking_id=' + encodeURIComponent(bookingId) + '&action=' + encodeURIComponent(action)
+    };
+
+    fetch('/approve-booking', requestData)
+        .then(function(response) { 
+            return response.json(); 
+        })
+        .then(function(data) {
+            if (data.status === 'success') {
+                var notificationCard = document.getElementById('notification-' + bookingId);
+                if (notificationCard && notificationCard.parentNode) {
+                    notificationCard.style.opacity = '0';
+                    notificationCard.style.transform = 'translateY(-10px)';
+                    setTimeout(function() { 
+                        notificationCard.parentNode.removeChild(notificationCard);
+                    }, 300);
+                }
+            } else {
+                window.alert(data.message || 'An error occurred');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            window.alert('An error occurred. Please try again.');
+        });
+}
+
+// Attach event listeners after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    var approveButtons = document.querySelectorAll('.btn-approve');
+    var rejectButtons = document.querySelectorAll('.btn-reject');
+
+    approveButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            var bookingId = this.getAttribute('data-booking-id');
+            if (bookingId) {
+                handleBooking(bookingId, 'approve');
+            }
+        });
+    });
+
+    rejectButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            var bookingId = this.getAttribute('data-booking-id');
+            if (bookingId) {
+                handleBooking(bookingId, 'reject');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

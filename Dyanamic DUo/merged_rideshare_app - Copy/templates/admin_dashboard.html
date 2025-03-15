@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - IIT Indore Ride Sharing</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-verify {
+            background-color: #1e3c72;
+            color: white;
+        }
+        .btn-verify:hover {
+            background-color: #2a5298;
+            color: white;
+        }
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Admin Dashboard</a>
+            <div class="d-flex">
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Registered Users</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Roll Number</th>
+                                        <th>Registration Date</th>
+                                        <th>ID Card</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr>
+                                        <td>{{ user.full_name }}</td>
+                                        <td>{{ user.email }}</td>
+                                        <td>{{ user.roll_number }}</td>
+                                        <td>{{ user.created_at }}</td>
+                                        <td>
+                                            {% if user.id_card_photo %}
+                                                <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#idCardModal{{ user.id }}">
+                                                    <i class="bi bi-eye"></i> View ID
+                                                </button>
+                                            {% else %}
+                                                <span class="badge bg-secondary">No ID Card</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if user.is_verified %}
+                                                <span class="badge bg-success status-badge">Verified</span>
+                                            {% else %}
+                                                <span class="badge bg-warning status-badge">Pending</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <form action="{{ url_for('toggle_user_verification', user_id=user.id) }}" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-verify">
+                                                    {% if user.is_verified %}
+                                                        Unverify
+                                                    {% else %}
+                                                        Verify
+                                                    {% endif %}
+                                                </button>
+                                            </form>
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}">Delete</button>
+                                            
+                                            <!-- Delete Confirmation Modal for each user -->
+                                            <div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ user.id }}" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-danger text-white">
+                                                            <h5 class="modal-title" id="deleteModalLabel{{ user.id }}">Confirm User Deletion</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p class="mb-0">Are you sure you want to delete user <strong>{{ user.full_name }}</strong>?</p>
+                                                            <p class="text-muted small mt-2">This action cannot be undone.</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <a href="{{ url_for('delete_user', user_id=user.id) }}" class="btn btn-danger">Delete User</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ID Card Photo Modals -->
+    {% for user in users %}
+    {% if user.id_card_photo %}
+    <div class="modal fade" id="idCardModal{{ user.id }}" tabindex="-1" aria-labelledby="idCardModalLabel{{ user.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="idCardModalLabel{{ user.id }}">ID Card - {{ user.full_name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="{{ url_for('uploaded_file', filename=user.id_card_photo) }}" class="img-fluid" alt="{{ user.full_name }}'s ID Card">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
